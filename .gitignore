@@ -1,3 +1,7 @@
 node_modules/
 dist/
 .tsbuildinfo
+ast.json
+test.txt
+test.crust
+out*
