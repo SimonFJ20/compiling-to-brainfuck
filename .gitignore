@@ -5,3 +5,4 @@ ast.json
 test.txt
 test.crust
 out*
+src/grammar.ts
