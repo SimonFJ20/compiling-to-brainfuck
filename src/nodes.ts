@@ -41,16 +41,14 @@ export abstract class ValueNode extends Node {
     public valueType: string;
     public value: string;
 
-    constructor(valueType: string, token: Token, pos: Pos) {
+    constructor(valueType: string, value: string, pos: Pos) {
         super('value', pos, pos);
         this.valueType = valueType;
-        this.value = token.value;
+        this.value = value;
     }
 }
 
-interface ToplevelStatement {
-
-}
+export interface ToplevelStatement {}
 
 export class FileNode extends Node {
     public namespace: NamespaceNode;
@@ -63,7 +61,7 @@ export class FileNode extends Node {
     }
 }
 
-export class NamespaceNode extends Node implements ToplevelStatement {
+export class NamespaceNode extends Node {
     public name: string;
 
     constructor (name: string, begin: Pos, end: Pos) {
@@ -94,9 +92,7 @@ export class DefinitionNode extends Node implements ToplevelStatement {
     }
 }
 
-interface BlockStatement {
-
-}
+export interface BlockStatement {}
 
 export class BlockNode extends Node implements BlockStatement {
     public nodes: BlockStatement[];
@@ -231,13 +227,19 @@ export class UnaryNode extends Node {
 
 export class HexNode extends ValueNode {
     constructor(token: Token, pos: Pos) {
-        super('hex', token, pos);
+        super('hex', token.value, pos);
     }
 }
 
 export class IntNode extends ValueNode {
     constructor(token: Token, pos: Pos) {
-        super('int', token, pos);
+        super('int', token.value, pos);
+    }
+}
+
+export class StringNode extends ValueNode {
+    constructor(token: Token, pos: Pos) {
+        super('string', token.value, pos);
     }
 }
 

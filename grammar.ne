@@ -11,7 +11,7 @@ const lexer = compile({
     hex:        /0x[0-9a-fA-F]+/,
     int:        /0|(?:[1-9][0-9]*)/,
     string:     {match: /"(?:\\["\\n]|[^\n"\\])*"/, value: s => s.slice(1, -1)},
-    name:       {match: /[a-zA-Z][a-zA-Z0-9_]*/, type: keywords({
+    name:       {match: /[a-zA-Z0-9_]+/, type: keywords({
         keyword: ['func', 'return', 'let', 'if', 'else', 'while', 'namespace', 'import', 'export']
     })},
     lparen:     '(',
@@ -62,6 +62,7 @@ import {
     UnaryNode,
     HexNode,
     IntNode,
+    StringNode,
 } from "./nodes";
 %}
 
@@ -84,7 +85,7 @@ import      ->  "import" __ %name
     {% (v) => new ImportNode(v[2].value, Pos.from(v[0]), Pos.from(v[2])) %}
 
 definition  ->  "func" __ %name _ %lparen namelist %rparen _ block
-    {% (v) => new DefinitionNode(v[2], v[5], v[8], Pos.from(v[0]), v[8].end) %}
+    {% (v) => new DefinitionNode(v[2].value, v[5], v[8], Pos.from(v[0]), v[8].end) %}
 
 namelist    ->  (_ %name (_ %comma _ %name):*):? _
     {% (v) => v[0] ? [v[0][1].value, ...v[0][2].map((v: any) => v[3].value)] : [] %}
@@ -93,7 +94,7 @@ block       ->  %lbrace statements %rbrace
     {% (v) => new BlockNode(v[1], Pos.from(v[0]), Pos.from(v[2])) %}
 
 statements  ->  (_ statement (sl_ %nl _ statement):*):? _
-    {% (v) => v[0] ? [v[0][1], ...v[0][2].map((v: any) => v[2])] : [] %}
+    {% (v) => v[0] ? [v[0][1], ...v[0][2].map((v: any) => v[3])] : [] %}
 
 statement   ->  block       {% id %}
             |   while       {% id %}
@@ -130,6 +131,7 @@ value       ->  %lparen _ value _ %rparen {% (v) => v[2] %}
             |   unary   {% id %}
             |   %hex    {% ([v]) => new HexNode(v, Pos.from(v)) %}
             |   %int    {% ([v]) => new IntNode(v, Pos.from(v)) %}
+            |   %string {% ([v]) => new StringNode(v, Pos.from(v)) %}
 
 call        -> %name _ %lparen valuelist %rparen
     {% (v) => new CallNode(v[0].value, v[3], Pos.from(v[0]), Pos.from(v[4])) %}
