@@ -114,7 +114,7 @@ if_else     ->  if __ "else" __ statement
     {% (v) => IfElseNode.from(v[0], v[4], v[4].end) %}
 
 if          ->  "if" __ value __ statement
-    {% (v) => new IfNode(v[1], v[4], Pos.from(v[0]), v[4].end) %}
+    {% (v) => new IfNode(v[2], v[4], Pos.from(v[0]), v[4].end) %}
 
 declaration ->  "let" __ %name _ %assign _ value
     {% (v) => new DeclarationNode(v[2].value, v[6], Pos.from(v[0]), v[6].end) %}

@@ -167,7 +167,7 @@ const compileValue = (ctx: Context, value: ValueNode) => {
     } else if (value instanceof CallNode) {
         return compileCall(ctx, value);
     }
-    console.log(value)
+    console.log(value);
     throw new Error('not implemented');
 }
 
@@ -252,6 +252,85 @@ const compileCall = (ctx: Context, statement: CallNode): string => {
     return args + res;
 }
 
+const compileIf = (ctx: Context, statement: IfNode) => {
+    return `
+        ${compileValue(ctx, statement.condition)}
+        $TOSTACK
+        ${left(ctx.sp)}
+        [
+            ${right(ctx.sp)}
+            $FROMSTACK
+            ${compileBlockStatement(ctx, statement.truthy)}
+            $TOSTACK
+            ${left(ctx.sp)}
+            [-]
+        ]
+        ${right(ctx.sp)}
+        $FROMSTACK
+    `;
+}
+
+const compileIfElse = (ctx: Context, statement: IfElseNode) => {
+    ensureStackLength(ctx, 2);
+    return `
+        ${compileValue(ctx, statement.condition)}
+        $TOSTACK
+        ${left(ctx.sp)}
+        < + >
+        [
+            < [-] >
+            ${right(ctx.sp)}
+            $FROMSTACK
+            ${compileBlockStatement(ctx, statement.truthy)}
+            $TOSTACK
+            ${left(ctx.sp)}
+            [-]
+        ]
+        <
+        [
+            ${right(ctx.sp)}
+            $FROMSTACK
+            ${compileBlockStatement(ctx, statement.falsy)}
+            $TOSTACK
+            ${left(ctx.sp)}
+            [-]
+        ]
+        ${right(ctx.sp)}
+        $FROMSTACK
+    `;
+}
+
+const compileWhile = (ctx: Context, statement: WhileNode) => {
+    ensureStackLength(ctx, 3);
+    return `
+        ${compileValue(ctx, statement.condition)}
+        $TOSTACK
+        ${left(ctx.sp)}
+        [
+            ${right(ctx.sp)}
+            $FROMSTACK
+            ${compileBlockStatement(ctx, statement.body)}
+            $TOSTACK
+            ${left(ctx.sp)}
+            
+            ${compileValue(ctx, statement.condition)}
+            $TOSTACK
+            ${left(ctx.sp + 1)}
+            < + >
+            [ < [-] > [-] ]
+            <
+            [
+                > > [-]
+                [-]
+            ]
+            ${right(ctx.sp + 1)}
+            $FROMSTACK
+        ]
+        ${right(ctx.sp)}
+        $FROMSTACK
+    `;
+}
+
 const compileBlockStatement = (ctx: Context, statement: BlockStatement): string => {
     if (statement instanceof CallNode) {
         return compileCall(ctx, statement);
@@ -264,15 +343,14 @@ const compileBlockStatement = (ctx: Context, statement: BlockStatement): string 
     } else if (statement instanceof DeclarationNode) {
         return compileDeclaration(ctx, statement);
     } else if (statement instanceof IfNode) {
-
+        return compileIf(ctx, statement);
     } else if (statement instanceof IfElseNode) {
-        
+        return compileIfElse(ctx, statement);
     } else if (statement instanceof WhileNode) {
-        
+        return compileWhile(ctx, statement);
     } else if (statement instanceof BlockNode) {
         return compileBlock(ctx, statement);
     }
-    console.log(statement)
     throw new Error('not implemented');
 }
 
