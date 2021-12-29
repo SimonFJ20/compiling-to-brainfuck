@@ -10,6 +10,7 @@ const lexer = compile({
     // float:      /\-?(?:(?:0|(?:[1-9][0-9]*))\.[0-9]+)/,
     hex:        /0x[0-9a-fA-F]+/,
     int:        /0|(?:[1-9][0-9]*)/,
+    char:       {match: /'(?:\\['\\n]|[^\n'\\])'/, value: s => s.slice(1, -1)},
     string:     {match: /"(?:\\["\\n]|[^\n"\\])*"/, value: s => s.slice(1, -1)},
     name:       {match: /[a-zA-Z0-9_]+/, type: keywords({
         keyword: ['func', 'return', 'let', 'if', 'else', 'while', 'namespace', 'import', 'export']
@@ -59,9 +60,10 @@ import {
     CallNode,
     AdditionNode,
     SubtractionNode,
-    UnaryNode,
+    // UnaryNode,
     HexNode,
     IntNode,
+    CharNode,
     StringNode,
 } from "./nodes";
 %}
@@ -72,7 +74,7 @@ file        ->  namespace sl_ %nl tllist
     {% (v) => new FileNode(v[0], v[3], v[0].begin, v[3].length > 0 ? v[3][v[3].length-1].end : Pos.from(v[2])) %}
 
 tllist      -> (_ tlstatement (sl_ %nl _ tlstatement):*):?
-    {% (v) => v[0] ? [v[0][1], ...v[0][2].map((v: any) => v[2])] : [] %}
+    {% (v) => v[0] ? [v[0][1], ...v[0][2].map((v: any) => v[3])] : [] %}
 
 tlstatement ->  import      {% id %}
             |   definition  {% id %}
@@ -118,7 +120,7 @@ declaration ->  "let" __ %name _ %assign _ value
     {% (v) => new DeclarationNode(v[2].value, v[6], Pos.from(v[0]), v[6].end) %}
 
 assignment  ->  %name _ %assign _ value
-    {% (v) => new AssigmentNode(v[0].value, v[4], Pos.from(v[0]), Pos.from(v[4])) %}
+    {% (v) => new AssigmentNode(v[0].value, v[4], Pos.from(v[0]), v[4].end) %}
 
 return      -> "return" __ value
     {% (v) => new ReturnNode(v[2], Pos.from(v[0]), v[2].value) %}
@@ -128,9 +130,10 @@ value       ->  %lparen _ value _ %rparen {% (v) => v[2] %}
             |   %name   {% ([v]) => new AccessNode(v.value, Pos.from(v), Pos.from(v)) %}
             |   add     {% id %}
             |   sub     {% id %}
-            |   unary   {% id %}
+            # |   unary   {% id %}
             |   %hex    {% ([v]) => new HexNode(v, Pos.from(v)) %}
             |   %int    {% ([v]) => new IntNode(v, Pos.from(v)) %}
+            |   %char   {% ([v]) => new CharNode(v, Pos.from(v)) %}
             |   %string {% ([v]) => new StringNode(v, Pos.from(v)) %}
 
 call        -> %name _ %lparen valuelist %rparen
@@ -145,11 +148,11 @@ add         -> value _ %plus _ value
 sub         -> value _ %minus _ value
     {% (v) => new SubtractionNode(v[0], v[4], v[0].begin, v[4].end) %}
 
-unary       ->  %minus _ value
-    {% (v) => new UnaryNode(v[2], Pos.from(v[0]), v[2].end) %}
+# unary       ->  %minus _ value
+#     {% (v) => new UnaryNode(v[2], Pos.from(v[0]), v[2].end) %}
 
 _           ->  __:?
-__          ->  (%ws|%nl|%comment|%comment_ml):+
+__          ->  (%ws|%nl|%comment_sl|%comment_ml):+
 
 sl_         ->  sl__:?
-sl__        ->  (%ws|%comment|%comment_ml):+
+sl__        ->  (%ws|%comment_sl|%comment_ml):+

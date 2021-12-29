@@ -216,29 +216,35 @@ export class SubtractionNode extends BinaryOperationNode {
     }
 }
 
-export class UnaryNode extends Node {
-    public value: ValueNode;
+// export class UnaryNode extends Node {
+//     public value: ValueNode;
     
-    constructor (value: ValueNode, begin: Pos, end: Pos) {
-        super('unary', begin, end);
-        this.value = value;
-    }
-}
+//     constructor (value: ValueNode, begin: Pos, end: Pos) {
+//         super('unary', begin, end);
+//         this.value = value;
+//     }
+// }
 
 export class HexNode extends ValueNode {
-    constructor(token: Token, pos: Pos) {
+    constructor (token: Token, pos: Pos) {
         super('hex', token.value, pos);
     }
 }
 
 export class IntNode extends ValueNode {
-    constructor(token: Token, pos: Pos) {
+    constructor (token: Token, pos: Pos) {
         super('int', token.value, pos);
     }
 }
 
-export class StringNode extends ValueNode {
+export class CharNode extends ValueNode {
     constructor(token: Token, pos: Pos) {
+        super('char', token.value, pos);
+    }
+}
+
+export class StringNode extends ValueNode {
+    constructor (token: Token, pos: Pos) {
         super('string', token.value, pos);
     }
 }
