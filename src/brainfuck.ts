@@ -420,18 +420,15 @@ export const toBrainfuck = (files: FileNode[]): string => {
         definitions: [...stddefs()],
         callstack: [],
     };
-    return removeUnusedSiblings(files
+    const res = files
         .map(file => compileFile(ctx, file))
         .join('')
-        // .replaceAll('$TOSTACK', right(ctx.stackLength))
-        // .replaceAll('$FROMSTACK', left(ctx.stackLength))
-        // .replaceAll('$TOVAR', right(ctx.stackLength + ctx.varCount))
-        // .replaceAll('$FROMVAR', left(ctx.stackLength + ctx.varCount))
-        .replaceAll('$TOSTACK', right(ctx.stackLength) + ' TOSTACK')
-        .replaceAll('$FROMSTACK', left(ctx.stackLength) + ' FROMSTACK')
-        .replaceAll('$TOVAR', right(ctx.stackLength + ctx.varsLength) + ' TOVAR')
-        .replaceAll('$FROMVAR', left(ctx.stackLength + ctx.varsLength) + ' FROMVAR')
+        .replaceAll('$TOSTACK', right(ctx.stackLength) + '// TOSTACK')
+        .replaceAll('$FROMSTACK', left(ctx.stackLength) + '// FROMSTACK')
+        .replaceAll('$TOVAR', right(ctx.stackLength + ctx.varsLength) + '// TOVAR')
+        .replaceAll('$FROMVAR', left(ctx.stackLength + ctx.varsLength) + '// FROMVAR')
         // .replace(/\/\/.*?$/gm, '')
         // .replace(/\s/g, '')
-    );
+
+    return removeUnusedSiblings(res);
 }
