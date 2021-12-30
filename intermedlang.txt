@@ -1,0 +1,39 @@
+
+=== INSTRUCTIONS BUILTIN ===
+
+lw      reg, imm16/HL   ->  reg = memory[imm16/HL]
+sw      imm16/HL, reg   ->  memory[imm16/HL] = reg
+mov     reg, imm8/reg   -<  reg = imm8/reg
+push    imm8/reg        ->  stack[++sp] = imm8/reg
+pop     reg             ->  reg = stacK[sp--]
+add     reg, imm8/reg   ->  reg = reg + imm8/reg
+sub     reg, imm8/reg   ->  reg = reg - imm8/reg
+lstart
+lend
+input   reg
+output  imm8/reg
+
+=== INSTRUCTIONS MACROS ===
+
+=== REGISTERS ===
+
+A   0x0     GP
+B   0x1     GP
+C   0x2     GP
+D   0x3     GP
+L   0x4     MEMORY INDEX (L)OW
+H   0x5     MEMORY INDEX (H)IGH
+
+=== MEMORY LAYOUT ===
+
+16 bit addressing, eg. 0x0F0F
+
+1st 8 bytes is reserved for registers
+
+stack grows backwards
+
+little endian
+
+size is at least 3 * 10^4 bytes
+
+memory can be indexed 1 byte at a time

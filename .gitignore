@@ -1,8 +1,12 @@
 node_modules/
 dist/
 .tsbuildinfo
-ast.json
 test.txt
 test.crust
 out*
+
+ast.json
 src/grammar.ts
+
+imlast.json
+src/imlgrammar.ts
