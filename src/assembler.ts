@@ -1,18 +1,49 @@
 import { writeFileSync } from "fs";
 import { Grammar, Parser } from "nearley";
+import { assembleToBrainfuck } from "./assemblers/toBrainfuck";
 import imlgrammar from "./imlgrammar";
 
-export const assembleToBrainfuck = (program: string): string => {
+export type Reg = {
+    type: 'reg',
+    value: 'a' | 'b' | 'c' | 'd' | 'l' | 'h',
+}
+
+export type Imm8 = {
+    type: 'imm8',
+    value: number
+}
+
+export type Imm16 = {
+    type: 'imm16',
+    value: number
+}
+
+export type Instruction = {
+    type: 'instruction',
+    name: string,
+    dest: Reg | Imm8 | Imm16 | null,
+    src: Reg | Imm8 | Imm16 | null,
+}
+
+const parseAssembly = (program: string): Instruction[] => {
     const parser = new Parser(Grammar.fromCompiled(imlgrammar));
     parser.feed(program);
-    const ast = parser.results[0];
-    writeFileSync('imlast.json', JSON.stringify(ast, null, 4));
-
-    return ''
+    writeFileSync('imlast.json', JSON.stringify(parser.results, null, 4));
+    return parser.results[0];
 }
 
-const program = `(65535)`;
+const program = `
+push 0x45
+lstart
+mov a, -255
+output a
+lend
+`;
 
-export const testAssembler = () => {
-    const res = assembleToBrainfuck(program);
+export const assemble = (): string => {
+    const ast = parseAssembly(program);
+    const res = assembleToBrainfuck(ast);
+    return res;
 }
+
+

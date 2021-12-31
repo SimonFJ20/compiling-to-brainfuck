@@ -1,6 +1,6 @@
 import { readFile, writeFile } from "fs/promises";
 import { Grammar, Parser } from "nearley";
-import { testAssembler } from "./assembler";
+import { assemble } from "./assembler";
 import { toBrainfuck } from "./brainfuck";
 import CompiledGrammar from "./grammar";
 
@@ -18,7 +18,7 @@ const main = async () => {
     // await writeFile('ast.json', JSON.stringify(ast, null, 4));
     // const brainfuck = toBrainfuck([ast]);
     // await writeFile('out.bf', brainfuck);
-    testAssembler()
+    assemble()
 }
 
 main();

@@ -3,15 +3,15 @@
 
 lw      reg, imm16/HL   ->  reg = memory[imm16/HL]
 sw      imm16/HL, reg   ->  memory[imm16/HL] = reg
-mov     reg, imm8/reg   -<  reg = imm8/reg
+mov     reg, imm8/reg   ->  reg = imm8/reg
 push    imm8/reg        ->  stack[++sp] = imm8/reg
 pop     reg             ->  reg = stacK[sp--]
 add     reg, imm8/reg   ->  reg = reg + imm8/reg
 sub     reg, imm8/reg   ->  reg = reg - imm8/reg
-lstart
-lend
-input   reg
-output  imm8/reg
+lstart  imm8/reg        ->  jump to matching "lend" if imm8/reg == 0
+lend    imm8/reg        ->  jump to matching "lstart" if imm8/reg != 0
+input   reg             ->  get byte from STDIN
+output  imm8/reg        ->  print byte to STDOUT
 
 === INSTRUCTIONS MACROS ===
 
@@ -28,12 +28,44 @@ H   0x5     MEMORY INDEX (H)IGH
 
 16 bit addressing, eg. 0x0F0F
 
-1st 8 bytes is reserved for registers
+0x0000          move buffer (see 'move operation' below)
+0x0001          conditionals buffer
+0x0002->0x0007  registers
+0x0006          stack pointer
+0x0007->0x0009  reserved for stack operations
+0x000A->0x00FF  stack (growing inward)
+0x0100->        GP
+
+dont EVER under- or overflow the stack,
+this will cause the stack to malfunction,
+and potentially get the execution lost
+
+STACK_START is inclusive
+STACK_END+2 is not
 
 stack grows backwards
+
+heap grows outward
 
 little endian
 
 size is at least 3 * 10^4 bytes
 
 memory can be indexed 1 byte at a time
+
+move operation :: [movbuf, src, dest] = [0, val, 0] -> [val, 0, val] -> [0, val, val]
+
+=== BRAINFUCK ASSEMBLER SPECIFIC ===
+
+heap layout:
+location
++0  V   ->  stored value
++1  T   ->  transfer value
++2  OH  ->  MEMORY INDEX (H)IGH for outward (used to get to the location)
++3  OL  ->  MEMORY INDEX (L)OW for outward
++4  IH  ->  MEMORY INDEX (H)IGH for inward (used to return from the location)
++5  IL  ->  MEMORY INDEX (L)OW for inward
+
++0 is the stored value, which is only changed when the user wants to
+
+the assembler already takes this imm16 addressing into account when doing `lw reg, imm16` and `sw imm16, reg`
