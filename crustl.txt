@@ -1,0 +1,69 @@
+
+=== GENERAL ===
+
+name            'crustl'
+file extension  '.crust'
+
+A programming language designed to be high level, for writing programs that compile to brainfuck
+
+
+
+* = things that may change
+
+=== VARIBLES ===
+
+let example := 5
+example := 6
+let result := exampleFunction(example)
+
+=== FUNCTIONS ===
+
+func exampleFunction(arg1, arg2) {
+    // do stuff
+    return arg1
+}
+
+Explicit return is optional
+
+*Explicit return (if used) must be the last statement in the function
+
+*Recursion is NOT supported
+
+The function named 'main' is the entrypoint for the program,
+that means a 'main'-function MUST exist in a program
+
+=== EXAMPLES ===
+
+// if statement
+let a := 1
+if (a) {
+
+}
+
+// if-elseif-else statement
+let b := someFunction()
+let c := someFunction()
+if (b) {
+    // do stuff
+} else if (c) {
+    // do stuff
+} else {
+    // do stuff
+}
+
+// singleline if statement
+let d = someFunction()
+if (d)
+    // do stuff
+
+// no parenthesis '()' if statement
+let e = someFunction()
+if e {
+
+}
+
+// while loop
+while (1) {
+
+}
+

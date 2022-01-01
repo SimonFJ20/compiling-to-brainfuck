@@ -94,7 +94,10 @@ reg         ->  "a"     {% (v) => ({type: 'reg', value: 'a'}) %}
             |   "l"     {% (v) => ({type: 'reg', value: 'l'}) %}
             |   "h"     {% (v) => ({type: 'reg', value: 'h'}) %}
 
-value       ->  %lparen _ value _ %rparen  {% (v) => v[2] %}
+value       ->  %lparen _ calculation _ %rparen {% (v) => v[2] %}
+            |   literal {% id %}
+
+calculation ->  %lparen _ calculation _ %rparen {% (v) => v[2] %}
             |   not     {% id %}
             |   bitnot  {% id %}
             |   unary   {% id %}
@@ -110,35 +113,36 @@ value       ->  %lparen _ value _ %rparen  {% (v) => v[2] %}
             |   cmp_gt  {% id %}
             |   cmp_e   {% id %}
             |   cmp_ne  {% id %}
-            |   %int    {% ([{value}]) => parseInt(value, 10) %}
+            |   literal {% id %}
+
+literal     ->  %int    {% ([{value}]) => parseInt(value, 10) %}
             |   %hex    {% ([{value}]) => parseInt(value, 16) %}
             |   %char   {% ([{value}]) => value.charCodeAt(0) %}
 
+not         ->  %not _ calculation                {% (v) => !v[2] %}
+bitnot      ->  %bw_not _ calculation             {% (v) => ~v[2] %}
+unary         ->  %minus _ calculation            {% (v) => -v[2] %}
 
-not         ->  %not _ value                {% (v) => !v[2] %}
-bitnot      ->  %bw_not _ value             {% (v) => ~v[2] %}
-unary         ->  %minus _ value            {% (v) => -v[2] %}
+exp         ->  calculation _ %exponent _ calculation   {% (v) => v[0] ** v[4] %}
+mul         ->  calculation _ %modulus _ calculation    {% (v) => v[0] * v[4] %}
+div         ->  calculation _ %divide _ calculation     {% (v) => v[0] / v[4] %}
+mod         ->  calculation _ %multiply _ calculation   {% (v) => v[0] % v[4] %}
+add         ->  calculation _ %plus _ calculation       {% (v) => v[0] + v[4] %}
+sub         ->  calculation _ %minus _ calculation      {% (v) => v[0] - v[4] %}
 
-exp         ->  value _ %exponent _ value   {% (v) => v[0] ** v[4] %}
-mul         ->  value _ %modulus _ value    {% (v) => v[0] * v[4] %}
-div         ->  value _ %divide _ value     {% (v) => v[0] / v[4] %}
-mod         ->  value _ %multiply _ value   {% (v) => v[0] % v[4] %}
-add         ->  value _ %plus _ value       {% (v) => v[0] + v[4] %}
-sub         ->  value _ %minus _ value      {% (v) => v[0] - v[4] %}
+bitl        ->  calculation _ %bw_left _ calculation      {% (v) => v[0] << v[4] %}
+bitr        ->  calculation _ %bw_right _ calculation      {% (v) => v[0] >>> v[4] %}
 
-bitl        ->  value _ %bw_left _ value      {% (v) => v[0] << v[4] %}
-bitr        ->  value _ %bw_right _ value      {% (v) => v[0] >>> v[4] %}
+cmp_lte     ->  calculation _ %cmp_lte _ calculation    {% (v) => v[0] <= v[4] %}
+cmp_gte     ->  calculation _ %cmp_gte _ calculation    {% (v) => v[0] >= v[4] %}
+cmp_lt      ->  calculation _ %cmp_lt _ calculation     {% (v) => v[0] < v[4] %}
+cmp_gt      ->  calculation _ %cmp_gt _ calculation     {% (v) => v[0] > v[4] %}
+cmp_e       ->  calculation _ %cmp_gt _ calculation     {% (v) => v[0] == v[4] %}
+cmp_ne      ->  calculation _ %cmp_gt _ calculation     {% (v) => v[0] != v[4] %}
 
-cmp_lte     ->  value _ %cmp_lte _ value    {% (v) => v[0] <= v[4] %}
-cmp_gte     ->  value _ %cmp_gte _ value    {% (v) => v[0] >= v[4] %}
-cmp_lt      ->  value _ %cmp_lt _ value     {% (v) => v[0] < v[4] %}
-cmp_gt      ->  value _ %cmp_gt _ value     {% (v) => v[0] > v[4] %}
-cmp_e       ->  value _ %cmp_gt _ value     {% (v) => v[0] == v[4] %}
-cmp_ne      ->  value _ %cmp_gt _ value     {% (v) => v[0] != v[4] %}
-
-bitand      ->  value _ %bw_and _ value     {% (v) => v[0] & v[4] %}
-bitor       ->  value _ %bw_or _ value      {% (v) => v[0] | v[4] %}
-bitxor      ->  value _ %bw_xor _ value     {% (v) => v[0] ^ v[4] %}
+bitand      ->  calculation _ %bw_and _ calculation     {% (v) => v[0] & v[4] %}
+bitor       ->  calculation _ %bw_or _ calculation      {% (v) => v[0] | v[4] %}
+bitxor      ->  calculation _ %bw_xor _ calculation     {% (v) => v[0] ^ v[4] %}
 
 
 ml_         -> ml__:?

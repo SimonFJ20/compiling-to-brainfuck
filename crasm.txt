@@ -1,4 +1,14 @@
 
+=== GENERAL ===
+
+name:           'crasm'
+file extension: '.crasm'
+
+Crustl Assembly Language
+
+Assembly language optimised to compile to brainfuck
+
+
 === INSTRUCTIONS BUILTIN ===
 
 lw      reg, imm16/HL   ->  reg = memory[imm16/HL]

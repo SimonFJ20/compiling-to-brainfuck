@@ -1,7 +1,7 @@
 import { writeFileSync } from "fs";
 import { Grammar, Parser } from "nearley";
 import { assembleToBrainfuck } from "./assemblers/toBrainfuck";
-import imlgrammar from "./imlgrammar";
+import imlgrammar from "./crasm_grammar.gen";
 
 export type Reg = {
     type: 'reg',
@@ -28,16 +28,16 @@ export type Instruction = {
 const parseAssembly = (program: string): Instruction[] => {
     const parser = new Parser(Grammar.fromCompiled(imlgrammar));
     parser.feed(program);
-    writeFileSync('imlast.json', JSON.stringify(parser.results, null, 4));
+    writeFileSync('crasm-ast.gen.json', JSON.stringify(parser.results, null, 4));
     return parser.results[0];
 }
 
 const program = `
 push 0x45
-lstart
-mov a, -255
+lstart 1
+mov a, (-255)
 output a
-lend
+lend a
 `;
 
 export const assemble = (): string => {

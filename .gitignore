@@ -4,9 +4,8 @@ dist/
 test.txt
 test.crust
 out*
+*.gen.*
 
-ast.json
-src/grammar.ts
+crustl_ast.gen.json
+crasm_ast.gen.json
 
-imlast.json
-src/imlgrammar.ts

@@ -320,17 +320,69 @@ const storeWordAtHL = (src: Reg) => `
     ${swReg_transferValue()}
 `;
 
-// lw      reg, imm16/HL   ->  reg = memory[imm16/HL]
-// sw      imm16/HL, reg   ->  memory[imm16/HL] = reg
-// mov     reg, imm8/reg   ->  reg = imm8/reg
-// push    imm8/reg        ->  stack[++sp] = imm8/reg
-// pop     reg             ->  reg = stacK[sp--]
-// add     reg, imm8/reg   ->  reg = reg + imm8/reg
-// sub     reg, imm8/reg   ->  reg = reg - imm8/reg
-// lstart  imm8/reg        ->  jump to matching "lend" if imm8/reg == 0
-// lend                    ->  jump to matching "lstart" unconditionally
-// input   reg             ->  get byte from STDIN
-// output  imm8/reg        ->  print byte to STDOUT
+const assemblePushImm8 = (value: number) => `
+    ${doAt(MEM['STACK_END'], `
+        [>] // hit top of stack
+        ${add(value)} // place value
+        < [+] // reset new top to 0 (positive increment because its probably 255)
+        [<] // go back to STACK_END
+    `)}
+`;
+
+const pushReg_findTop = () => `
+    // find the top
+    [
+        // copy value from last position to current
+        ${rlInvert(copy(0, 1))}
+        ${rlInvert(doAt(1, `[-]-`))}
+        
+        >
+    ]
+`;
+
+const assemblePushReg = (reg: Reg) => `
+    ${copy(MEM[reg.value], MEM['STACK_END'] + 1)}
+    ${doAt(MEM['STACK_END'], `
+        // go to first empty
+        >>
+        ${pushReg_findTop()}
+        // copy value from last position to current
+        ${rlInvert(copy(0, 1))}
+        // set top to 0
+        ${rlInvert(doAt(1, `[-]`))}
+        <<
+        [<]
+    `)}
+`;
+
+const pop_findTopOfStack = () => `[>]`;
+
+const pop_swapValueAndTop = () => `${move(0, 1)}`
+
+const pop_moveValueToStackEnd = () => `
+    [ // move value stopping at STACK_END
+        ${move(0, 1)}
+        ${doAt(1, '-')} // reset to 255
+        <
+    ]
+`;
+
+const pop_doStackOperation = () => `
+    ${doAt(MEM['STACK_END'], `
+        // relpos
+        > // skip looper stopper at STACK_END
+        ${pop_findTopOfStack()}
+        ${pop_swapValueAndTop()}
+        < // go to void left for value
+        ${pop_moveValueToStackEnd()}
+    `)}
+`;
+
+const assemblePopReg = (reg: Reg) => `
+    ${pop_doStackOperation()}
+    ${move(MEM[reg.value], MEM['STACK_END'] + 1)}
+    ${doAt(MEM['STACK_END'] + 1, '-')} // reset to 255
+`;
 
 const assembleLoadWord = (lw: Instruction): string => {
     if (lw.dest?.type === 'reg')
@@ -365,51 +417,17 @@ const assembleMove = (mov: Instruction): string => {
     throw new Error('not implemented');
 }
 
-const pushImm8 = (value: number) => `
-    ${doAt(MEM['STACK_END'], `
-        [>] // hit top of stack
-        ${add(value)} // place value
-        < [+] // reset new top to 0 ([+] because its probably 255)
-        [<] // go back to STACK_END
-    `)}
-`;
-
 const assemblePush = (push: Instruction): string => {
     if (push.src?.type === 'imm8')
-        return pushImm8(push.src.value);
+        return assemblePushImm8(push.src.value);
     else if (push.src?.type === 'reg')
-        return `
-            ${copy(MEM[push.src.value], MEM['STACK_END'] + 1)}
-            ${doAt(MEM['STACK_END'], `
-                // go to first empty
-                >>
-                // find the top
-                [
-                    // copy value from last position to current
-                    ${rlInvert(copy(0, 1))}
-                    ${rlInvert(doAt(1, `[-]-`))}
-
-                    >
-                ]
-                // copy value from last position to current
-                ${rlInvert(copy(0, 1))}
-                // set top to 0
-                ${rlInvert(doAt(1, `[-]`))}
-                <<
-                [<]
-            `)}
-        `;
+        return assemblePushReg(push.src);
     throw new Error('not implemented');
 }
 
 const assemblePop = (pop: Instruction): string => {
     if (pop.dest?.type === 'reg')
-        return `
-            ${doAt(MEM['STACK_END'], `
-                > [>] // find top of stack
-                // TODO finish
-            `)}
-        `;
+        return assemblePopReg(pop.dest);
     throw new Error('not implemented');
 }
 
