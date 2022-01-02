@@ -410,7 +410,7 @@ const removeUnusedSiblings = (brainfuck: string): string => {
     return brainfuck;
 }
 
-export const toBrainfuck = (files: FileNode[]): string => {
+export const crustlAstToBrainfuck = (files: FileNode[]): string => {
     const ctx: Context = {
         sp: 0,
         stackLength: 1,

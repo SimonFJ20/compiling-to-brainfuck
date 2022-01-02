@@ -32,7 +32,7 @@ const parseAssembly = (program: string): Instruction[] => {
     return parser.results[0];
 }
 
-const program = `
+const testProgram = `
 push 0x45
 lstart 1
 mov a, (-255)
@@ -40,7 +40,7 @@ output a
 lend a
 `;
 
-export const assemble = (): string => {
+export const assembleCrasmToBrainfuck = (program: string = testProgram): string => {
     const ast = parseAssembly(program);
     const res = assembleToBrainfuck(ast);
     return res;

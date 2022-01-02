@@ -1,4 +1,4 @@
-import { Imm16, Imm8, Instruction, Reg } from "../assembler"
+import { Imm16, Imm8, Instruction, Reg } from "../crasm"
 
 const MEM = {
     'MOVE_BUFFER':          0x0000,

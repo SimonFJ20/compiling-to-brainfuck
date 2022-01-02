@@ -80,8 +80,8 @@ builtins    ->  "lw" _ reg _ %comma _ imm16 {% (v) => ({type: 'instruction', nam
             |   "lend" _ imm8               {% (v) => ({type: 'instruction', name: 'lend',   dest: null, src: v[2]}) %}
             |   "lend" _ reg                {% (v) => ({type: 'instruction', name: 'lend',   dest: null, src: v[2]}) %}
             |   "input" _ reg               {% (v) => ({type: 'instruction', name: 'input',  dest: v[2], src: null}) %}
-            |   "output" _ imm8             {% (v) => ({type: 'instruction', name: 'output', dest: null, src: v[6]}) %}
-            |   "output" _ reg              {% (v) => ({type: 'instruction', name: 'output', dest: null, src: v[6]}) %}
+            |   "output" _ imm8             {% (v) => ({type: 'instruction', name: 'output', dest: null, src: v[2]}) %}
+            |   "output" _ reg              {% (v) => ({type: 'instruction', name: 'output', dest: null, src: v[2]}) %}
 
 imm16       ->  %lbracket _ value _ %rbracket   {% ([,,v]) => ({type: 'imm16', value: Math.abs(Math.floor(v) % 65536)}) %}
 
