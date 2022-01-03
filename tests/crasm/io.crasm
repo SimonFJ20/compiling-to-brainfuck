@@ -1,9 +1,10 @@
 
+// should print input+1 and 'a'
+
 input b
 add b, 1
 output b
 
 mov a, 'a'
 output a
-mov a, '\n'
-output a
+output '\n'

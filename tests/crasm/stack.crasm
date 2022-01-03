@@ -1,7 +1,12 @@
 
-// should print B
+// should print "AB"
 
-mov a, 'B'
+mov a, 'A'
 push a
-pop b
-output b
+push 'B'
+pop c
+pop d
+output d
+output c
+
+output '\n'

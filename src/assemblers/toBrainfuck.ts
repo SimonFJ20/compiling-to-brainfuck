@@ -26,16 +26,20 @@ const rlInvert = (action: string) => action.replaceAll('<', '#').replaceAll('>',
 const regLoc = (reg: any) => MEM[(reg as Reg).value]
 
 const doAt = (location: number, action: string) => `
+    // begin doAt(${location}; action)
     ${r(location)}
     ${action}
     ${l(location)}
+    // end doAt(${location}; action)
 `;
 const doAtReg = (reg: Reg, action: string) => doAt(MEM[(reg as Reg).value], action);
 
 const doAwayFrom = (location: number, action: string) => `
+    // begin doAwayFrom(${location}; action)
     ${l(location)}
     ${action}
     ${r(location)}
+    // end doAwayFrom(${location}; action)
 `;
 const doAwayFromReg = (reg: Reg, action: string) => doAwayFrom(MEM[(reg as Reg).value], action);
 
@@ -50,13 +54,9 @@ const resetReg = (reg: Reg) => doAtReg(reg, '[-]');
 const increment = (location: number) => doAt(location, '+');
 const decrement = (location: number) => doAt(location, '-');
 
-const incrementReg = (reg: Reg, amount: number = 1) => `
-    ${doAtReg(reg, add(amount))}
-`;
+const incrementReg = (reg: Reg, amount: number = 1) => doAtReg(reg, add(amount));
 
-const decrementReg = (reg: Reg, amount: number = 1) => `
-    ${doAtReg(reg, sub(amount))}
-`;
+const decrementReg = (reg: Reg, amount: number = 1) => doAtReg(reg, sub(amount));
 
 const setRegToValue = (reg: Reg, value: number) => `
     ${resetReg(reg)}
@@ -245,11 +245,11 @@ const loadWordAtHL = (dest: Reg) => `
 
 const swReg_moveValuesTo_HEAP_START_TransferLocation = (src: Reg) => `
     // move values to HEAP_START transfor location
-    ${copy(regLoc(src), MEM['HEAP_START'] + 1)}
-    ${copy(MEM['h'], MEM['HEAP_START'] + 2)}
-    ${copy(MEM['l'], MEM['HEAP_START'] + 3)}
-    ${copy(MEM['h'], MEM['HEAP_START'] + 4)}
-    ${copy(MEM['l'], MEM['HEAP_START'] + 5)}
+    ${copy(MEM['HEAP_START'] + 1, MEM[src.value])}
+    ${copy(MEM['HEAP_START'] + 2, MEM['h'])}
+    ${copy(MEM['HEAP_START'] + 3, MEM['l'])}
+    ${copy(MEM['HEAP_START'] + 4, MEM['h'])}
+    ${copy(MEM['HEAP_START'] + 5, MEM['l'])}
 `;
 
 const swReg_move_execution_T_OH_OL_IH_IL_ToTarget_H_Index = () => `
@@ -282,22 +282,36 @@ const swReg_move_execution_T_OL_IH_IL_ToTarget_L_Index = () => `
 const swReg_move_execution_IH_IL_To_L_ZeroIndex = () => `
     ${loopAt(5, ` // return to L=0
         ${doAwayFrom(5, ` // move values to prev L index
-            ${rlInvert(move(HEAP_ILS + 4, 4))}
-            ${rlInvert(move(HEAP_ILS + 5, 5))}
+            ${move(HEAP_ILS + 4, 4)}
+            ${move(HEAP_ILS + 5, 5)}
+        `)}
+        ${l(HEAP_ILS)} // go to prev L index
+        - // decrement IL
+    `)}
+    ${loopAt(5, ` // return to L=0
+        ${doAwayFrom(5, ` // move values to prev L index
+            ${loopAt(4, ` // move(HEAP_ILS plus 4, 4)
+                ${doAwayFrom(4, rlInvert(increment(HEAP_ILS + 4)))}
+                -
+            `)}
+            ${loopAt(5, ` // move(HEAP_ILS plus 5, 5)
+                ${doAwayFrom(5, rlInvert(increment(HEAP_ILS + 5)))}
+                -
+            `)}
         `)}
         ${l(HEAP_ILS)} // go to prev L index
         - // decrement IL
     `)}
 `;
 
-const swReg_move_execution_IL_To_L_ZeroIndex = () => `
-    ${loopAt(4, ` // return to H=0
+const swReg_move_execution_IH_To_H_ZeroIndex = () => `
+    ${rlInvert(loopAt(4, ` // return to H=0
         ${doAwayFrom(4, ` // move values to prev H index
-            ${rlInvert(move(HEAP_ILS + 4, 4))}
+            ${move(HEAP_ILS + 4, 4)}
         `)}
         ${l(0x0100 * HEAP_ILS)} // go to prev H index
         - // decrement IH
-    `)}
+    `))}
 `;
 
 const swReg_transferValue = () => `
@@ -311,7 +325,7 @@ const swReg_transferValue = () => `
         // T is now garbage
         ${swReg_move_execution_IH_IL_To_L_ZeroIndex()}
         // IL is now garbage
-        ${swReg_move_execution_IL_To_L_ZeroIndex()}
+        ${/* swReg_move_execution_IH_To_H_ZeroIndex() */ ''}
     `)}
 `;
 
@@ -321,11 +335,13 @@ const storeWordAtHL = (src: Reg) => `
 `;
 
 const assemblePushImm8 = (value: number) => `
+    // push_imm8
     ${doAt(MEM['STACK_END'], `
+        >   // skip STACK_END
         [>] // hit top of stack
         ${add(value)} // place value
         < [+] // reset new top to 0 (positive increment because its probably 255)
-        [<] // go back to STACK_END
+        < [<] // go back to STACK_END
     `)}
 `;
 
@@ -364,6 +380,7 @@ const pop_swapValueAndTop = () => `${move(0, 1)}`
 
 const pop_moveValueToStackEnd = () => `
     [ // move value stopping at STACK_END
+        [+] // 255 to 0
         ${move(0, 1)}
         ${doAt(1, '-')} // reset to 255
         <
@@ -519,14 +536,16 @@ export const assembleToBrainfuck = (program: Instruction[], debug: boolean = fal
     const out = initializeStack() + userProgram
     if (debug) {
         return out
-        .replace(/\s/g, '')
-        .replace(/^    /gm, '')
+        .replace(/^[ \t]+/gm, '')
+        .replace(/\n{2,}/gs, '\n\n')
         ;
     } else {
         return out
-        .replace(/^    /gm, '')
+        .replace(/\s/g, '')
+        .replace(/\/\/.*?$/gm, '')
         ;
     }
 }
 
-
+// //.*?[\+\-,\.\[\]<>]
+// regex to find bf comment errors

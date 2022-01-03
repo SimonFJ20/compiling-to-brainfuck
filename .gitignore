@@ -9,3 +9,5 @@ out.*
 crustl_ast.gen.json
 crasm_ast.gen.json
 
+dump.html
+

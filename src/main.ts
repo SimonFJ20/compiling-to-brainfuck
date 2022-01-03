@@ -124,7 +124,7 @@ const main = async () => {
             if (targets.includes('crasm') || useEmitAsm)
                 await writeFile('out.crasm', crasm);
             if (targets.includes('brainfuck') && !useNoBin) {
-                const brainfuck = assembleCrasmToBrainfuck(crasm);
+                const brainfuck = assembleCrasmToBrainfuck(crasm, useDebug);
                 await writeFile('out.bf', brainfuck);
             }
         } else if (useLegacyDirect) {
@@ -136,7 +136,7 @@ const main = async () => {
         if (targets.includes('crasm') || useEmitAsm)
             await writeFile('out.crasm', crasm);
         if (targets.includes('brainfuck')) {
-            const brainfuck = assembleCrasmToBrainfuck(crasm);
+            const brainfuck = assembleCrasmToBrainfuck(crasm, useDebug);
             await writeFile('out.bf', brainfuck);
         }
     }

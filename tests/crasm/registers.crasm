@@ -1,6 +1,9 @@
 
+// should print 2
 mov a, 1
 mov b, 2
 mov a, b
 add a, 48
 output a
+
+output '\n'
