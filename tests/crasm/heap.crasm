@@ -1,0 +1,15 @@
+
+mov a, 'K'
+sw [0x0200], a
+lw b, [0x0200]
+output b
+
+mov a, 'Y'
+mov h, 0x02
+mov l, 0x00
+sw a
+lw b
+output h
+output l
+add b, 48
+output b

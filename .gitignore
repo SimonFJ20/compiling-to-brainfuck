@@ -3,7 +3,7 @@ dist/
 .tsbuildinfo
 test.txt
 test.crust
-out*
+out.*
 *.gen.*
 
 crustl_ast.gen.json

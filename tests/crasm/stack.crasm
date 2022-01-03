@@ -1,0 +1,7 @@
+
+// should print B
+
+mov a, 'B'
+push a
+pop b
+output b

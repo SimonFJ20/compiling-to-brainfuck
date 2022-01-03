@@ -42,6 +42,11 @@ const lexer = compile({
     cmp_lt:     '<',
     cmp_gt:     '<',
 });
+const ESCAPED_CHARS: {[key: string]: string} = {
+    '0': '\0',
+    'n': '\n',
+    't': '\t',
+};
 %}
 
 @lexer lexer
@@ -117,7 +122,13 @@ calculation ->  %lparen _ calculation _ %rparen {% (v) => v[2] %}
 
 literal     ->  %int    {% ([{value}]) => parseInt(value, 10) %}
             |   %hex    {% ([{value}]) => parseInt(value, 16) %}
-            |   %char   {% ([{value}]) => value.charCodeAt(0) %}
+            |   %char   {% 
+                ([{value}]) => value[0] === '\\' && value.length > 1
+                ? value[1] in ESCAPED_CHARS
+                    ? ESCAPED_CHARS[value[1]].charCodeAt(0)
+                    : value.charCodeAt(1)
+                : value.charCodeAt(0)
+            %}
 
 not         ->  %not _ calculation                {% (v) => !v[2] %}
 bitnot      ->  %bw_not _ calculation             {% (v) => ~v[2] %}

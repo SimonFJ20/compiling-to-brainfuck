@@ -40,9 +40,9 @@ output a
 lend a
 `;
 
-export const assembleCrasmToBrainfuck = (program: string = testProgram): string => {
+export const assembleCrasmToBrainfuck = (program: string = testProgram, debug: boolean = false): string => {
     const ast = parseAssembly(program);
-    const res = assembleToBrainfuck(ast);
+    const res = assembleToBrainfuck(ast, debug);
     return res;
 }
 

@@ -1,3 +1,4 @@
+import { toCrasm } from "./crustl/toCrasm";
 import { Parser, Grammar } from "nearley";
 import { crustlAstToBrainfuck } from "./brainfuck";
 import CompiledCrustlGrammar from "./crustl_grammar.gen";
@@ -13,5 +14,5 @@ export const compileCrustlToBrainfuckDirectly = (ast: any): string => {
 }
 
 export const compileCrustlToCrasm = (ast: any): string => {
-    throw new Error('not implemented');
+    return toCrasm(ast);
 }

@@ -333,7 +333,8 @@ const pushReg_findTop = () => `
     // find the top
     [
         // copy value from last position to current
-        ${rlInvert(copy(0, 1))}
+        [+]
+        ${rlInvert(move(0, 1))}
         ${rlInvert(doAt(1, `[-]-`))}
         
         >
@@ -341,13 +342,15 @@ const pushReg_findTop = () => `
 `;
 
 const assemblePushReg = (reg: Reg) => `
-    ${copy(MEM[reg.value], MEM['STACK_END'] + 1)}
+    // push_reg
+    ${copy(MEM['STACK_END'] + 1, MEM[reg.value])}
     ${doAt(MEM['STACK_END'], `
         // go to first empty
         >>
         ${pushReg_findTop()}
         // copy value from last position to current
-        ${rlInvert(copy(0, 1))}
+        [+]
+        ${rlInvert(move(0, 1))}
         // set top to 0
         ${rlInvert(doAt(1, `[-]`))}
         <<
@@ -379,6 +382,7 @@ const pop_doStackOperation = () => `
 `;
 
 const assemblePopReg = (reg: Reg) => `
+    // pop_reg
     ${pop_doStackOperation()}
     ${move(MEM[reg.value], MEM['STACK_END'] + 1)}
     ${doAt(MEM['STACK_END'] + 1, '-')} // reset to 255
@@ -499,23 +503,30 @@ const initializeStack = () => {
     // if its needed to clear the stack, insert [-] somewhere here
     // REMEMBER: inward growing stack, meaning starting right, growing left
     return `
-        ${doAt(MEM['STACK_START'], '+')} // ref(a): set STACK_START to 1
+        ${doAt(MEM['STACK_START'], '+')} // set STACK_START to 1
         ${doAt(MEM['STACK_END'], `
-            [-] // clear STACK_END; making it a loop-stopper
-            [ > - ] // change all values from 0 to 255 on all slots
-                    // stopping at STACK_START; because ref(a)
-                    // so instead of 0 to 255 its 1 to 0
-            [<] // go back until hitting loop-stopper at STACK_END
+            > [-] -     // skip STACK_END and change value to 255
+            [ > - ]     // change all values from 0 to 255 on all slots
+                        // stopping at STACK_START
+                        // because instead of 0 to 255 its 1 to 0
+            < [<]       // go back until hitting loop stopper at STACK_END
         `)}
     `;
 }
 
-export const assembleToBrainfuck = (program: Instruction[]): string => {
+export const assembleToBrainfuck = (program: Instruction[], debug: boolean = false): string => {
     const userProgram = program.map(instruction => assembleInstruction(instruction)).join('');
-    return (initializeStack() + userProgram)
-        // .replace(/\s/g, '')
+    const out = initializeStack() + userProgram
+    if (debug) {
+        return out
+        .replace(/\s/g, '')
         .replace(/^    /gm, '')
         ;
+    } else {
+        return out
+        .replace(/^    /gm, '')
+        ;
+    }
 }
 
 

@@ -1,8 +1,5 @@
 import { readFile, writeFile, stat } from "fs/promises";
-import { Grammar, Parser } from "nearley";
 import { assembleCrasmToBrainfuck } from "./crasm";
-import { crustlAstToBrainfuck } from "./brainfuck";
-import { exit } from "process";
 import { compileCrustlToBrainfuckDirectly, compileCrustlToCrasm, parseCrustlToAST } from "./crustl";
 
 
@@ -21,7 +18,10 @@ Options:
 `.slice(1, -1);
 
 const getArgs = () =>
-    process.argv.filter(v => !/[(?:node)(?:main\.js)]$/.test(v));
+    process.argv
+        .slice(2)
+        // .filter(a => !process.execArgv.includes(a));
+        // .filter(v => !/[(?:node)(?:main\.js)]$/.test(v));
 const checkHelpArg = (args: string[]) => {
     if (args.includes('--help')) {
         console.log(cliHelpMessage());
@@ -35,9 +35,9 @@ const getLangFromArgs = (args: string[]): 'crustl' | 'crasm' => {
         console.error('fatal: only 1 language can be specified');
         process.exit(1);
     }
-    if (langArgs[0] === undefined) return 'crustl';
-    const langMatch = langArgs[0].match(langArgRegex);
-    const lang = langMatch ? langMatch[1] : null;
+    // if (langArgs[0] === undefined) return 'crustl';
+    const langMatch = langArgs[0].match(/^\-\-lang='?([a-zA-Z0-9]*)'?/);
+    const lang = langMatch ? langMatch![1] : null;
     if (!lang || lang === 'crustl') {
         return 'crustl';
     } else if (lang === 'crasm') {
@@ -121,9 +121,9 @@ const main = async () => {
             await writeFile('crustl-ast.gen.json', JSON.stringify(ast, null, 4));
         if (targets.includes('crasm') || targets.includes('brainfuck') && !useLegacyDirect) {
             const crasm = compileCrustlToCrasm(ast);
-            if (targets.includes('crasm'))
+            if (targets.includes('crasm') || useEmitAsm)
                 await writeFile('out.crasm', crasm);
-            if (targets.includes('brainfuck')) {
+            if (targets.includes('brainfuck') && !useNoBin) {
                 const brainfuck = assembleCrasmToBrainfuck(crasm);
                 await writeFile('out.bf', brainfuck);
             }
@@ -133,7 +133,7 @@ const main = async () => {
         }
     } else if (lang === 'crasm') {
         const crasm = inputFiles[0];
-        if (targets.includes('crasm'))
+        if (targets.includes('crasm') || useEmitAsm)
             await writeFile('out.crasm', crasm);
         if (targets.includes('brainfuck')) {
             const brainfuck = assembleCrasmToBrainfuck(crasm);
