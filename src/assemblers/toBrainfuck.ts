@@ -162,10 +162,10 @@ const outputImm8 = (value: number) => `
 
 const lwReg_moveValuesTo_HEAP_START_TransferLocation = () => `
     // prepare values at HEAP_START for transfer
-    ${copy(MEM['h'], MEM['HEAP_START'] + 2)}
-    ${copy(MEM['l'], MEM['HEAP_START'] + 3)}
-    ${copy(MEM['h'], MEM['HEAP_START'] + 4)}
-    ${copy(MEM['l'], MEM['HEAP_START'] + 5)}
+    ${copy(MEM['HEAP_START'] + 2, MEM['h'])}
+    ${copy(MEM['HEAP_START'] + 3, MEM['l'])}
+    ${copy(MEM['HEAP_START'] + 4, MEM['h'])}
+    ${copy(MEM['HEAP_START'] + 5, MEM['l'])}
 `;
 
 const lwReg_move_execution_OH_OL_IH_IL_ToTarget_H_Index = () => `
@@ -193,23 +193,71 @@ const lwReg_move_execution_OL_IH_IL_ToTarget_L_Index = () => `
     `)}
 `;
 
-const lwReg_move_execution_T_IH_IL_To_L_ZeroIndex = () => `
+/*
+const swReg_move_execution_IH_IL_To_L_ZeroIndex = () => `
     ${loopAt(5, ` // return to L=0
         ${doAwayFrom(5, ` // move values to prev L index
-            ${rlInvert(move(HEAP_ILS + 1, 1))}
-            ${rlInvert(move(HEAP_ILS + 4, 4))}
-            ${rlInvert(move(HEAP_ILS + 5, 5))}
+            ${loopAt(4, ` // move(HEAP_ILS plus 4 4)
+                ${doAwayFrom(4, rlInvert(increment(HEAP_ILS - 4)))}
+                -
+            `)}
+            ${loopAt(5, ` // move(HEAP_ILS plus 5 5)
+                ${doAwayFrom(5, rlInvert(increment(HEAP_ILS - 5)))}
+                -
+            `)}
         `)}
         ${l(HEAP_ILS)} // go to prev L index
         - // decrement IL
     `)}
 `;
 
-const lwReg_move_execution_T_IL_To_H_ZeroIndex = () => `
+const swReg_move_execution_IH_To_H_ZeroIndex = () => `
     ${loopAt(4, ` // return to H=0
         ${doAwayFrom(4, ` // move values to prev H index
-            ${rlInvert(move(HEAP_ILS + 1, 1))}
-            ${rlInvert(move(HEAP_ILS + 4, 4))}
+            ${loopAt(4, ` // move(HEAP_ILS plus 4 4)
+                ${doAwayFrom(4, rlInvert(increment(0x0100 * HEAP_ILS - 4)))}
+                -
+            `)}
+        `)}
+        ${l(0x0100 * HEAP_ILS)} // go to prev H index
+        - // decrement IH
+    `)}
+`;
+*/
+
+const lwReg_move_execution_T_IH_IL_To_L_ZeroIndex = () => `
+    ${loopAt(5, ` // return to L=0
+        ${doAwayFrom(5, ` // move values to prev L index
+            ${loopAt(1, ` // move(HEAP_ILS plus 1 1)
+                ${doAwayFrom(4, rlInvert(increment(HEAP_ILS - 4)))}
+                -
+            `)}
+            ${loopAt(4, ` // move(HEAP_ILS plus 4 4)
+                ${doAwayFrom(4, rlInvert(increment(HEAP_ILS - 4)))}
+                -
+            `)}
+            ${loopAt(5, ` // move(HEAP_ILS plus 5 5)
+                ${doAwayFrom(5, rlInvert(increment(HEAP_ILS - 5)))}
+                -
+            `)}
+        `)}
+        ${l(HEAP_ILS)} // go to prev L index
+        - // decrement IL
+    `)}
+`;
+
+const lwReg_move_execution_T_IH_To_H_ZeroIndex = () => `
+    ${loopAt(4, ` // return to H=0
+        ${doAwayFrom(4, ` // move values to prev H index
+            ${loopAt(1, ` // move(HEAP_ILS plus 1 1)
+                ${doAwayFrom(4, rlInvert(increment(0x0100 * HEAP_ILS - 4)))}
+                -
+            `)}
+            ${loopAt(4, ` // move(HEAP_ILS plus 4 4)
+                ${doAwayFrom(4, rlInvert(increment(0x0100 * HEAP_ILS - 4)))}
+                -
+            `)}
+            
         `)}
         ${l(0x0100 * HEAP_ILS)} // go to prev H index
         - // decrement IH
@@ -227,14 +275,15 @@ const lwReg_transferValus = () => `
         // T is no longer garbage
         ${lwReg_move_execution_T_IH_IL_To_L_ZeroIndex()}
         // IL is now garbage
-        ${lwReg_move_execution_T_IL_To_H_ZeroIndex()}
+        ${lwReg_move_execution_T_IH_To_H_ZeroIndex()}
         // OH is now garbage
     `)}
 `;
 
 const lwReg_moveTranferred_T_ToDestReg = (dest: Reg) => `
     // move T to dest reg
-    ${move(MEM['HEAP_START'] + 1, regLoc(dest))}
+    ${doAt(regLoc(dest), '[-]')}
+    ${move(regLoc(dest), MEM['HEAP_START'] + 1)}
 `;
 
 const loadWordAtHL = (dest: Reg) => `
@@ -282,20 +331,12 @@ const swReg_move_execution_T_OL_IH_IL_ToTarget_L_Index = () => `
 const swReg_move_execution_IH_IL_To_L_ZeroIndex = () => `
     ${loopAt(5, ` // return to L=0
         ${doAwayFrom(5, ` // move values to prev L index
-            ${move(HEAP_ILS + 4, 4)}
-            ${move(HEAP_ILS + 5, 5)}
-        `)}
-        ${l(HEAP_ILS)} // go to prev L index
-        - // decrement IL
-    `)}
-    ${loopAt(5, ` // return to L=0
-        ${doAwayFrom(5, ` // move values to prev L index
-            ${loopAt(4, ` // move(HEAP_ILS plus 4, 4)
-                ${doAwayFrom(4, rlInvert(increment(HEAP_ILS + 4)))}
+            ${loopAt(4, ` // move(HEAP_ILS plus 4 4)
+                ${doAwayFrom(4, rlInvert(increment(HEAP_ILS - 4)))}
                 -
             `)}
-            ${loopAt(5, ` // move(HEAP_ILS plus 5, 5)
-                ${doAwayFrom(5, rlInvert(increment(HEAP_ILS + 5)))}
+            ${loopAt(5, ` // move(HEAP_ILS plus 5 5)
+                ${doAwayFrom(5, rlInvert(increment(HEAP_ILS - 5)))}
                 -
             `)}
         `)}
@@ -305,13 +346,16 @@ const swReg_move_execution_IH_IL_To_L_ZeroIndex = () => `
 `;
 
 const swReg_move_execution_IH_To_H_ZeroIndex = () => `
-    ${rlInvert(loopAt(4, ` // return to H=0
+    ${loopAt(4, ` // return to H=0
         ${doAwayFrom(4, ` // move values to prev H index
-            ${move(HEAP_ILS + 4, 4)}
+            ${loopAt(4, ` // move(HEAP_ILS plus 4 4)
+                ${doAwayFrom(4, rlInvert(increment(0x0100 * HEAP_ILS - 4)))}
+                -
+            `)}
         `)}
         ${l(0x0100 * HEAP_ILS)} // go to prev H index
         - // decrement IH
-    `))}
+    `)}
 `;
 
 const swReg_transferValue = () => `
@@ -325,7 +369,7 @@ const swReg_transferValue = () => `
         // T is now garbage
         ${swReg_move_execution_IH_IL_To_L_ZeroIndex()}
         // IL is now garbage
-        ${/* swReg_move_execution_IH_To_H_ZeroIndex() */ ''}
+        ${swReg_move_execution_IH_To_H_ZeroIndex()}
     `)}
 `;
 
@@ -541,8 +585,8 @@ export const assembleToBrainfuck = (program: Instruction[], debug: boolean = fal
         ;
     } else {
         return out
-        .replace(/\s/g, '')
         .replace(/\/\/.*?$/gm, '')
+        .replace(/\s/g, '')
         ;
     }
 }

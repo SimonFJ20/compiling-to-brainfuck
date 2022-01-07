@@ -1,15 +1,17 @@
 
-// mov a, 'K'
-// sw [0x0204], a
-// lw b, [0x0204]
-// output b
+mov a, 'A'
+sw [0x0204], a
+lw b, [0x0204]
+output b
 
-mov a, 'Y'
+mov a, 'B'
 mov h, 0x02
 mov l, 0x04
 sw a
-// lw b
-// output h
-// output l
-// add b, 48
-// output b
+lw b
+output b
+
+mov a, '='
+sw [0x0204], a
+lw b, [0x0204]
+output b
