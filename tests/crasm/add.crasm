@@ -1,0 +1,18 @@
+
+input a
+input b
+
+output a
+output ' '
+output '+'
+output ' '
+output b
+output ' '
+output '='
+output ' '
+
+sub a, 48
+add a, b
+output a
+
+output '\n'

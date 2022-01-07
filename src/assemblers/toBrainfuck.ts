@@ -193,38 +193,6 @@ const lwReg_move_execution_OL_IH_IL_ToTarget_L_Index = () => `
     `)}
 `;
 
-/*
-const swReg_move_execution_IH_IL_To_L_ZeroIndex = () => `
-    ${loopAt(5, ` // return to L=0
-        ${doAwayFrom(5, ` // move values to prev L index
-            ${loopAt(4, ` // move(HEAP_ILS plus 4 4)
-                ${doAwayFrom(4, rlInvert(increment(HEAP_ILS - 4)))}
-                -
-            `)}
-            ${loopAt(5, ` // move(HEAP_ILS plus 5 5)
-                ${doAwayFrom(5, rlInvert(increment(HEAP_ILS - 5)))}
-                -
-            `)}
-        `)}
-        ${l(HEAP_ILS)} // go to prev L index
-        - // decrement IL
-    `)}
-`;
-
-const swReg_move_execution_IH_To_H_ZeroIndex = () => `
-    ${loopAt(4, ` // return to H=0
-        ${doAwayFrom(4, ` // move values to prev H index
-            ${loopAt(4, ` // move(HEAP_ILS plus 4 4)
-                ${doAwayFrom(4, rlInvert(increment(0x0100 * HEAP_ILS - 4)))}
-                -
-            `)}
-        `)}
-        ${l(0x0100 * HEAP_ILS)} // go to prev H index
-        - // decrement IH
-    `)}
-`;
-*/
-
 const lwReg_move_execution_T_IH_IL_To_L_ZeroIndex = () => `
     ${loopAt(5, ` // return to L=0
         ${doAwayFrom(5, ` // move values to prev L index
@@ -507,7 +475,7 @@ const assembleAdd = (add: Instruction): string => {
 const assembleSub = (sub: Instruction): string => {
     if (sub.dest?.type === 'reg')
         if (sub.src?.type === 'imm8')
-            return incrementReg(sub.dest, sub.src.value);
+            return decrementReg(sub.dest, sub.src.value);
         else if (sub.src?.type === 'reg')
             return subtractRegFromReg(sub.dest, sub.src);
     throw new Error('not implemented');
