@@ -1,7 +1,12 @@
+import { exec } from "child_process";
 import { readFile, writeFile, stat } from "fs/promises";
 import { assembleCrasmToBrainfuck } from "./crasm";
 import { compileCrustlToBrainfuckDirectly, compileCrustlToCrasm, parseCrustlToAST } from "./crustl";
 
+const runShellCommand = async (command: string): Promise<string> =>
+    new Promise((resolve, reject) => 
+        exec(command, (error, stdout, stderr) =>
+                error || stderr ? reject(error || stderr) : resolve(stdout)));
 
 const cliHelpMessage = () => `
 CRUSTL Compiler
@@ -22,11 +27,17 @@ const getArgs = () =>
         .slice(2)
         // .filter(a => !process.execArgv.includes(a));
         // .filter(v => !/[(?:node)(?:main\.js)]$/.test(v));
-const checkHelpArg = (args: string[]) => {
-    if (args.includes('--help')) {
+const checkNonExecArgs = async (args: string[]) => {
+    if (args.length === 0) {
+        console.log('fatal: no args given')
         console.log(cliHelpMessage());
-        process.exit(0);
-    }
+    } else if (args.includes('--help')) {
+        console.log(cliHelpMessage());
+    } else if (args.includes('--version')) {
+        console.log(`crustl development version`);
+        console.log((await runShellCommand("git log -1")).split('\n').slice(0, 3).join('\n'));
+    } else return;
+    process.exit(0);
 }
 const getLangFromArgs = (args: string[]): 'crustl' | 'crasm' => {
     const langArgRegex = /^\-\-lang='?(.*?)'?/;
@@ -102,7 +113,7 @@ const readInputFiles = async (inputNames: string[]) => {
 
 const main = async () => {
     const args = getArgs();
-    checkHelpArg(args);
+    await checkNonExecArgs(args);
     const lang = getLangFromArgs(args);
     const targets = getTargetsFromArgs(args);
     checkLangTargetMatch(lang, targets);
