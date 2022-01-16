@@ -83,7 +83,7 @@ tlstatement ->  import      {% id %}
 namespace   ->  "namespace" __ %name
     {% (v) => new NamespaceNode(v[2].value, Pos.from(v[0]), Pos.from(v[2])) %}
 
-import      ->  "import" __ %name
+import      ->  "import" __ %string
     {% (v) => new ImportNode(v[2].value, Pos.from(v[0]), Pos.from(v[2])) %}
 
 definition  ->  "func" __ %name _ %lparen namelist %rparen _ block

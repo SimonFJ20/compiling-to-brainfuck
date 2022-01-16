@@ -12,7 +12,7 @@
       "outDir": "./dist",
       "pretty": true,
       "rootDir": "./src",
-      "baseUrl": "./src",
+      // "baseUrl": "./src",
       "skipDefaultLibCheck": true,
       "skipLibCheck": true,
       "strict": true,

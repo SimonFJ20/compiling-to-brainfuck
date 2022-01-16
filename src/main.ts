@@ -46,7 +46,7 @@ const getLangFromArgs = (args: string[]): 'crustl' | 'crasm' => {
         console.error('fatal: only 1 language can be specified');
         process.exit(1);
     }
-    // if (langArgs[0] === undefined) return 'crustl';
+    if (langArgs[0] === undefined) return 'crustl';
     const langMatch = langArgs[0].match(/^\-\-lang='?([a-zA-Z0-9]*)'?/);
     const lang = langMatch ? langMatch![1] : null;
     if (!lang || lang === 'crustl') {
@@ -128,6 +128,7 @@ const main = async () => {
     if (lang === 'crustl') {
         const crustl = inputFiles[0];
         const ast = parseCrustlToAST(crustl);
+        ast.setFilename(filenames[0]);
         if (targets.includes('crustl-ast'))
             await writeFile('crustl-ast.gen.json', JSON.stringify(ast, null, 4));
         if (targets.includes('crasm') || targets.includes('brainfuck') && !useLegacyDirect) {

@@ -1,0 +1,7 @@
+namespace main
+
+import "std.crust"
+
+func main() {
+    println("Hello world!")
+}

@@ -48,16 +48,22 @@ export abstract class ValueNode extends Node {
     }
 }
 
-export interface ToplevelStatement {}
+export interface ToplevelStatement extends Node {}
 
 export class FileNode extends Node {
     public namespace: NamespaceNode;
     public statements: ToplevelStatement[];
+    public filename: string = 'unset';
 
     constructor (namespace: NamespaceNode, statements: ToplevelStatement[], begin: Pos, end: Pos) {
         super('file', begin, end);
         this.namespace = namespace;
         this.statements = statements;
+    }
+
+    public setFilename(name: string) {
+        this.filename = name;
+        return this;
     }
 }
 
